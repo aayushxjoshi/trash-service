@@ -45,4 +45,3 @@ export class GameManager {
   }
 }
 
-export const gamemanager = GameManager.getInstance();
