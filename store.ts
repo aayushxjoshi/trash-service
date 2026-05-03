@@ -8,8 +8,20 @@ interface Game {
 export class GameManager {
   games: Game[] = [];
 
-  constructor() {
+  private static instance: GameManager;
+
+  private constructor() {
     this.games = []
+  }
+
+  static getInstance() {
+    // Here is the main thig we check if game manage instance exist if it exist we return it else new instance
+    if (GameManager.instance) {
+      return GameManager.instance
+    }
+
+    GameManager.instance = new GameManager();
+    return GameManager.instance
   }
 
   addMove(gameId: string, move: string) {
@@ -33,4 +45,4 @@ export class GameManager {
   }
 }
 
-export const gamemanager = new GameManager();
+export const gamemanager = GameManager.getInstance();
