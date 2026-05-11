@@ -1,0 +1,122 @@
+Basic Queue Workflow ------ Producer --> Queue --> Worker/Consumer
+
+Producer --> Create Tasks/Jobs.
+Queue --> Store Tasks Safely.
+Worker/Consumer --> Processes Task Asynchronously.
+
+Benefits of Queues :
+
+| Benefit          | Meaning               |
+| ---------------- | --------------------- |
+| Async processing | API responds fast     |
+| Reliability      | jobs not lost         |
+| Load leveling    | absorb traffic spikes |
+| Scalability      | add more workers      |
+| Retry support    | failed jobs retry     |
+| Decoupling       | services independent  |
+
+
+Types of Queues -
+1. Simple Queues
+2. Prority Queue
+3. Delayed Queue
+4. Dead Letter Queue
+5. Distributed Queue
+
+## Queue Technologies
+
+| Technology    | Type                        |
+| ------------- | --------------------------- |
+| Redis Lists   | basic queue                 |
+| Redis Streams | advanced queue/event log    |
+| RabbitMQ      | broker queue                |
+| Kafka         | distributed event streaming |
+| SQS           | cloud queue                 |
+| BullMQ        | Redis-based job queue       |
+
+## How Queue Actually Works ?
+A Queue is just FIFO. (First in First Out)
+
+Queue Operations -> Enqueue (Push) and Dequeue (Pop).
+
+Eg.
+
+const queue = [];
+queue.push('job1')
+queue.push('job2')
+
+const job = queue.shift() ------- job1, Remaining job2
+
+Producer -
+
+queue.push({
+  type: "send-email",
+  userId: 1
+});
+
+Consumer -
+while(true) {
+   const job = queue.shift();
+
+   process(job);
+}
+
+Problem with In Memory Queue -
+RAM is temporary, if server crashes queue gone jobs lost. Node.js process dies everyhting gone. So we need shared queue.
+
+Instead of in memory queue we need central queue. here comes DB as queues but same issue with this, db load, bottleneck, slow queries.
+
+Now comes the Specialized Queue System. Like Redis, RabbitMQ, Kafka, Amazon SQS etc.
+Optimized for -
+fast append
+fast reads
+distributed workers
+retries
+reliability
+
+
+Redis Queus came which solves problem but with so much issues.
+1. Job Loss
+2. No Acknowledgement
+3. No Consumer Groups
+4. No Replay etc.
+
+New requirement was queue should be -
+persistent
+reliable
+distributed
+replayable
+trackable
+scalable
+
+
+Pub/Sub came --> issue with this is also if subscriber offline then message lost forever  No persistence, No reliability, No replay.
+
+So Final Evolution - Redis Streams (Although many more queueing technologies are there we will see this).
+Redis Stream Solved -
+
+| Problem       | Streams Solution  |
+| ------------- | ----------------- |
+| Job loss      | ACK system        |
+| No retries    | Pending entries   |
+| No replay     | Persistent log    |
+| No scaling    | Consumer groups   |
+| No durability | Stored stream     |
+| No tracking   | Delivery metadata |
+
+Evolution Timeline
+
+Array Queue
+    ↓
+In-memory Queue
+    ↓
+Database Queue
+    ↓
+Redis Lists
+    ↓
+Pub/Sub
+    ↓
+Redis Streams
+    ↓
+Kafka-style architectures
+
