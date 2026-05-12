@@ -120,3 +120,20 @@ Redis Streams
     ↓
 Kafka-style architectures
 
+
+## Redis Streams
+
+Producer          -----> something creating events --- XADD orders * orderId 101 amount 500
+   ↓
+Stream            -----> event is stored inside stream new events added to end.
+   ↓
+Consumer Group    -----> Consumer groups transform streams into reliable distributed queues.
+   ↓
+Consumer
+   ↓
+Pending
+   ↓
+ACK
+
+
+
