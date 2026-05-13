@@ -5,7 +5,7 @@ const client = createClient();
 async function main() {
   await client.connect();
 
-  for (let i = 10; i <= 20; i++) {
+  for (let i = 30; i <= 40; i++) {
     const id = await client.xAdd("orders", "*", {
       orderId: `${i}`,
       user: `user-${i}`,

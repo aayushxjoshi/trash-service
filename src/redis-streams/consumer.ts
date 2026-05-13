@@ -5,7 +5,7 @@ const redisClient = createClient();
 async function main() {
   await redisClient.connect();
 
-  const consumer = 'worker-1'
+  const consumer = 'worker-2'
   while (true) {
     const response = await redisClient.xReadGroup(
       'workers',
