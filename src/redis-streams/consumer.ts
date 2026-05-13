@@ -1,50 +1,49 @@
-const { createClient } = require("redis");
+import { createClient } from "redis";
 
-const client = createClient();
+const redisClient = createClient();
 
 async function main() {
-  await client.connect();
+  await redisClient.connect();
 
-  const consumerName = "worker-1";
-
+  const consumer = 'worker-1'
   while (true) {
-    const response = await client.xReadGroup(
-      "workers",
-      consumerName,
+    const response = await redisClient.xReadGroup(
+      'workers',
+      consumer,
       {
-        key: "orders",
-        id: ">"
+        key: 'orders',
+        id: '>'
       },
       {
         COUNT: 1,
         BLOCK: 5000
       }
-    );
+    )
 
     if (!response) {
-      console.log("Waiting for messages...");
-      continue;
+      console.log("Waiting for Messages..")
+      continue
     }
 
     const messages = response[0].messages;
 
     for (const message of messages) {
       console.log("\nReceived:");
-      console.log(message);
+      console.log(message)
 
-      console.log("Processing order...");
+      console.log('Processing Event')
 
       await new Promise((r) => setTimeout(r, 3000));
 
-      await client.xAck(
-        "orders",
-        "workers",
+      await redisClient.xAck(
+        'orders',
+        'workers',
         message.id
-      );
+      )
 
-      console.log(`ACKED ${message.id}`);
+      console.log("ACKN", message.id)
     }
   }
 }
 
-main();
+main()
