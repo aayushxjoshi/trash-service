@@ -18,14 +18,25 @@ async function main() {
         COUNT: 1,
         BLOCK: 5000
       }
-    )
+    ) as Array<{
+      name: string,
+      messages: Array<{
+        id: string,
+        message: Record<string, string>
+      }>
+    }> | null
 
     if (!response) {
       console.log("Waiting for Messages..")
       continue
     }
 
-    const messages = response[0].messages;
+    const messages = response[0]?.messages;
+
+    if (!messages) {
+      console.error("No Message Found")
+      continue
+    }
 
     for (const message of messages) {
       console.log("\nReceived:");
