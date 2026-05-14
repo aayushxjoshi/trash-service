@@ -1,51 +1,56 @@
-# WebSocket Chat Server
-
-The `sockets/index.ts` file implements a real-time chat server using [Express](https://expressjs.com/) and [Socket.io](https://socket.io/). It provides a lightweight infrastructure for broadcasting messages to all connected clients.
+# Chat Server Documentation (`sockets/index.ts`)
 
 ## Overview
+This file implements a real-time chat server using `express` and `socket.io`. It manages user sessions, message history, and real-time event broadcasting, including typing indicators and system notifications.
 
-This server initializes an HTTP server wrapped with Socket.io to handle bidirectional communication. It is configured to allow cross-origin requests (`CORS: *`), making it accessible from various frontend environments.
+## API Endpoints
+The server provides standard HTTP endpoints for retrieving current state:
 
-## Key Functionality
-
-### Connection Handling
-- **`connection`**: Triggered when a client establishes a connection. The server logs the unique `socket.id` to the console.
-- **`disconnect`**: Triggered when a client closes the connection, logging the disconnection event.
-
-### Messaging
-- **`message` event**: Listens for incoming messages from clients.
-- **Broadcasting**: Upon receiving a message, the server emits a `message` event to **all** connected clients containing:
-    - `id`: The sender's socket ID.
-    - `text`: The message content.
-    - `time`: A timestamp of when the message was processed.
-
-## Server Configuration
-
-| Property | Value | Description |
+| Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **Port** | 3000 | The port on which the server listens. |
-| **CORS** | `*` | Allows requests from any origin. |
-| **Health Check** | `GET /` | Returns "Chat server running" to verify connectivity. |
+| `GET` | `/` | Health check; returns "Chat server running". |
+| `GET` | `/messages` | Returns the last 50 messages as a JSON array. |
+| `GET` | `/users` | Returns a list of currently connected usernames. |
+
+## Socket.io Events
+
+### Client-to-Server Events
+*   **`join`**: Registers a user with a `username`. Triggers a system broadcast and updates the active user list.
+*   **`message`**: Receives a text string, attaches the sender's username and timestamp, and broadcasts it to all clients. Maintains a rolling buffer of the last 50 messages.
+*   **`typing`**: Broadcasts a "typing" notification to all clients *except* the sender.
+*   **`disconnect`**: Removes the user from the session map and notifies all clients of the departure.
+
+### Server-to-Client Events
+*   **`message`**: Emits a message object `{ user, text, time }` to all clients.
+*   **`system`**: Emits status updates (e.g., "User joined/left").
+*   **`users`**: Emits the updated list of active usernames.
+*   **`typing`**: Emits a notification string indicating a user is currently typing.
+
+## State Management
+*   **`users`**: A `Map<string, string>` storing `socket.id` as the key and `username` as the value.
+*   **`messages`**: An array storing the last 50 message objects. Older messages are removed using `Array.shift()` to prevent memory overflow.
 
 ## Usage Example
 
-To interact with this server, connect a Socket.io client to `http://localhost:3000`:
-
+### Joining and Messaging
 ```javascript
-import { io } from "socket.io-client";
-
 const socket = io("http://localhost:3000");
 
-// Send a message
-socket.emit("message", "Hello, world!");
+// Join the chat
+socket.emit("join", "Alice");
 
-// Listen for incoming messages
-socket.on("message", (data) => {
-  console.log(`New message from ${data.id}: ${data.text} at ${data.time}`);
+// Listen for messages
+socket.on("message", (msg) => {
+  console.log(`${msg.user} [${msg.time}]: ${msg.text}`);
 });
+
+// Send a message
+socket.emit("message", "Hello everyone!");
+
+// Notify others you are typing
+socket.emit("typing");
 ```
 
-## Dependencies
-- `express`: Web framework for the HTTP server.
-- `http`: Node.js built-in module to create the server instance.
-- `socket.io`: Library for real-time, bidirectional event-based communication.
+### Configuration
+*   **Port**: 3000
+*   **CORS**: Enabled for all origins (`*`).
